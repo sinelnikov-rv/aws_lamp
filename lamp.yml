@@ -1,0 +1,128 @@
+Parameters:
+  KeyName:
+    Description: Key
+    Type: AWS::EC2::KeyPair::KeyName
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC
+    ConstraintDescription: exist VPC
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: subnets
+    ConstraintDescription: subnets
+  InstanceType:
+    Description: WebServer EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues: [t2.micro]
+  DBName:
+    Default: wordpress
+    Description: DB name
+    Type: String
+    MinLength: '1'
+    MaxLength: '64'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: first must be a letter
+  DBUser:
+    NoEcho: 'true'
+    Description: DB admin user
+    Type: String
+    MinLength: '1'
+    MaxLength: '16'
+    AllowedPattern: '[a-zA-z][a-zA-Z0-9]*'
+    ConstraintDescription: first must be a letter
+  DBPassword:
+    NoEcho: 'true'
+    Description: Admin user pass
+    Type: String
+    MinLength: '8'
+    MaxLength: '32'
+    AllowedPattern: '[a-zA-Z0-9]*'
+Mappings:
+  AWSInstanceType2Arch:
+    t2.micro:
+      Arch: HVM64
+  AWSInstanceType2NATArch:
+    t2.micro:
+      Arch: NATHVM64
+  AWSRegionArch2AMI:
+    eu-west-2:
+      HVM64: ami-c7ab5fa0
+Resources:
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable ssh + http
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      VpcId: !Ref VpcId
+  DBEC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Open port 3306
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '3306'
+        ToPort: '3306'
+        SourceSecurityGroupId: !Ref 'WebServerSecurityGroup'
+      VpcId: !Ref VpcId  
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: subnets
+      SubnetIds: !Ref Subnets
+  MyDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBName: !Ref 'DBName'
+      AllocatedStorage: '20'
+      DBInstanceClass: db.t2.micro
+      Engine: MySQL
+      EngineVersion: 5.7.22
+      MasterUsername: !Ref 'DBUser'
+      MasterUserPassword: !Ref 'DBPassword'
+      DBSubnetGroupName: !Ref 'DBSubnetGroup'
+      VPCSecurityGroups: [!GetAtt [DBEC2SecurityGroup, GroupId]]
+  Web:
+    Type: AWS::EC2::Instance
+    Metadata:
+      'AWS::CloudFormation::Init':
+        configSets:
+          wordpress_istall:
+            - install_packages
+        install_packages:
+          packahes:
+            apt:
+              apache2: []
+              php: []
+              php-mysql: []
+              libapache2-mod-php: []
+          sources:
+            /tmp: 'http://wordpress.org/latest.tag.gz'
+    Properties:
+      InstanceType: !Ref 'InstanceType'
+      KeyName: !Ref 'KeyName'
+      SecurityGroupIds: [!Ref 'WebServerSecurityGroup']
+      ImageId: !FindInMap [AWSRegionArch2AMI, !Ref 'AWS::Region', !FindInMap [AWSInstanceType2Arch, !Ref 'InstanceType' , Arch]]
+      UserData: !Base64
+        'Fn::Join':
+          - ''
+          - - |
+              #!/bin/bash -xe
+            - |
+            - '/opt/aws/bin/cfg-init -v '
+            - '         --stack '
+            - !Ref 'AWS::StackName'
+            - '         --resource WebServerInstance '
+            - '         --configsets InstallAndRun '
+            - '         --region '
+            - !Ref 'AWS::Region'
+            - |+
+
