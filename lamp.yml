@@ -92,37 +92,21 @@ Resources:
       VPCSecurityGroups: [!GetAtt [DBEC2SecurityGroup, GroupId]]
   Web:
     Type: AWS::EC2::Instance
-    Metadata:
-      'AWS::CloudFormation::Init':
-        configSets:
-          wordpress_istall:
-            - install_packages
-        install_packages:
-          packahes:
-            apt:
-              apache2: []
-              php: []
-              php-mysql: []
-              libapache2-mod-php: []
-          sources:
-            /tmp: 'http://wordpress.org/latest.tag.gz'
     Properties:
       InstanceType: !Ref 'InstanceType'
       KeyName: !Ref 'KeyName'
       SecurityGroupIds: [!Ref 'WebServerSecurityGroup']
       ImageId: !FindInMap [AWSRegionArch2AMI, !Ref 'AWS::Region', !FindInMap [AWSInstanceType2Arch, !Ref 'InstanceType' , Arch]]
-      UserData: !Base64
-        'Fn::Join':
-          - ''
-          - - |
-              #!/bin/bash -xe
-            - |
-            - '/opt/aws/bin/cfg-init -v '
-            - '         --stack '
-            - !Ref 'AWS::StackName'
-            - '         --resource WebServerInstance '
-            - '         --configsets InstallAndRun '
-            - '         --region '
-            - !Ref 'AWS::Region'
-            - |+
-
+      UserData: 
+        Fn::Base64: !Sub |
+           #!/bin/bash
+           PUBLIC_IP=`curl http://169.254.169.254/latest/meta-data/public-ipv4`
+           apt-get update
+           apt-get -y install apache2 php php-mysql libapache2-mod-php
+           cd /tmp/
+           wget https://wordpress.org/latest.tar.gz
+           sudo tar xzf latest.tar.gz -C /var/www/
+           sudo chown -R www-data:www-data /var/www/
+           sudo sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf
+           sudo service apache2 restart
+           curl --data "dbname=!Ref 'DBName'&uname=!Ref 'DBUser'&pwd=!Ref 'DBPassword'&dbhost=!GetAtt 'MyDB.Endpoint.Address'&prefix=wp_&language=&submit=Submit" http://$PUBLIC_IP/wp-admin/setup-config.php?step=2           
