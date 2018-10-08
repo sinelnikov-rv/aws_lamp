@@ -74,6 +74,7 @@ Resources:
       SubnetIds: !Ref Subnets
   MyDB:
     Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
     Properties:
       DBName: !Ref 'DBName'
       AllocatedStorage: '20'
@@ -84,23 +85,25 @@ Resources:
       MasterUserPassword: !Ref 'DBPassword'
       DBSubnetGroupName: !Ref 'DBSubnetGroup'
       VPCSecurityGroups: [!GetAtt [DBEC2SecurityGroup, GroupId]]
+      BackupRetentionPeriod: '0'
   Web:
     Type: AWS::EC2::Instance
+    DependsOn: 'MyDB'
     Properties:
       InstanceType: !Ref 'InstanceType'
       KeyName: !Ref 'KeyName'
       SecurityGroupIds: [!Ref 'WebServerSecurityGroup']
       ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', HVM64]
-      UserData: 
-        Fn::Base64: !Sub |
-           #!/bin/bash
-           PUBLIC_IP=`curl http://169.254.169.254/latest/meta-data/public-ipv4`
-           apt-get update
-           apt-get -y install apache2 php php-mysql libapache2-mod-php
-           cd /tmp/
-           wget https://wordpress.org/latest.tar.gz
-           sudo tar xzf latest.tar.gz -C /var/www/
-           sudo chown -R www-data:www-data /var/www/
-           sudo sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf
-           sudo service apache2 restart
-           curl --data "dbname=!Ref 'DBName'&uname=!Ref 'DBUser'&pwd=!Ref 'DBPassword'&dbhost=!GetAtt 'MyDB.Endpoint.Address'&prefix=wp_&language=&submit=Submit" http://$PUBLIC_IP/wp-admin/setup-config.php?step=2           
+#      UserData: 
+#        Fn::Base64: !Sub |
+#           #!/bin/bash
+#           PUBLIC_IP=`curl http://169.254.169.254/latest/meta-data/public-ipv4`
+#           apt-get update
+#           apt-get -y install apache2 php php-mysql libapache2-mod-php
+#           cd /tmp/
+#           wget https://wordpress.org/latest.tar.gz
+#           sudo tar xzf latest.tar.gz -C /var/www/
+#           sudo chown -R www-data:www-data /var/www/
+#           sudo sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf
+#           sudo service apache2 restart
+#           curl --data "dbname=!Ref 'DBName'&uname=!Ref 'DBUser'&pwd=!Ref 'DBPassword'&dbhost=!GetAtt 'MyDB.Endpoint.Address'&prefix=wp_&language=&submit=Submit" http://$PUBLIC_IP/wp-admin/setup-config.php?step=2           
