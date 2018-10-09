@@ -94,16 +94,17 @@ Resources:
       KeyName: !Ref 'KeyName'
       SecurityGroupIds: [!Ref 'WebServerSecurityGroup']
       ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', HVM64]
-#      UserData: 
-#        Fn::Base64: !Sub |
-#           #!/bin/bash
-#           PUBLIC_IP=`curl http://169.254.169.254/latest/meta-data/public-ipv4`
-#           apt-get update
-#           apt-get -y install apache2 php php-mysql libapache2-mod-php
-#           cd /tmp/
-#           wget https://wordpress.org/latest.tar.gz
-#           sudo tar xzf latest.tar.gz -C /var/www/
-#           sudo chown -R www-data:www-data /var/www/
-#           sudo sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf
-#           sudo service apache2 restart
-#           curl --data "dbname=!Ref 'DBName'&uname=!Ref 'DBUser'&pwd=!Ref 'DBPassword'&dbhost=!GetAtt 'MyDB.Endpoint.Address'&prefix=wp_&language=&submit=Submit" http://$PUBLIC_IP/wp-admin/setup-config.php?step=2           
+      UserData: 
+        Fn::Base64: !Sub |
+           #!/bin/bash
+           PUBLIC_IP=`curl http://169.254.169.254/latest/meta-data/public-ipv4`
+           apt-get update
+           apt-get -y install apache2 php php-mysql libapache2-mod-php
+           cd /tmp/
+           wget https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/builds/wordpress-latest.tar.gz
+           sudo mkdir -p /var/www/wordpress
+           sudo tar xzf wordpress-latest.tar.gz -C /var/www/wordpress
+           sudo chown -R www-data:www-data /var/www/
+           sudo sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf
+           sudo service apache2 restart
+           curl --data "dbname=!Ref 'DBName'&uname=!Ref 'DBUser'&pwd=!Ref 'DBPassword'&dbhost=!GetAtt 'MyDB.Endpoint.Address'&prefix=wp_&language=&submit=Submit" http://$PUBLIC_IP/wp-admin/setup-config.php?step=2
