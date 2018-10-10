@@ -76,23 +76,23 @@ Resources:
     Properties:
       DBSubnetGroupDescription: subnets
       SubnetIds: !Ref Subnets
-  MyDB:
-    Type: AWS::RDS::DBInstance
-    DeletionPolicy: Delete
-    Properties:
-      DBName: !Ref 'DBName'
-      AllocatedStorage: '20'
-      DBInstanceClass: db.t2.micro
-      Engine: MySQL
-      EngineVersion: 5.7.22
-      MasterUsername: !Ref 'DBUser'
-      MasterUserPassword: !Ref 'DBPassword'
-      DBSubnetGroupName: !Ref 'DBSubnetGroup'
-      VPCSecurityGroups: [!GetAtt [DBEC2SecurityGroup, GroupId]]
-      BackupRetentionPeriod: '0'
+#  MyDB:
+#    Type: AWS::RDS::DBInstance
+#    DeletionPolicy: Delete
+#    Properties:
+#      DBName: !Ref 'DBName'
+#      AllocatedStorage: '20'
+#      DBInstanceClass: db.t2.micro
+#      Engine: MySQL
+#      EngineVersion: 5.7.22
+#      MasterUsername: !Ref 'DBUser'
+#      MasterUserPassword: !Ref 'DBPassword'
+#      DBSubnetGroupName: !Ref 'DBSubnetGroup'
+#      VPCSecurityGroups: [!GetAtt [DBEC2SecurityGroup, GroupId]]
+#      BackupRetentionPeriod: '0'
   Web:
     Type: AWS::EC2::Instance
-    DependsOn: 'MyDB'
+#    DependsOn: 'MyDB'
     Properties:
       InstanceType: !Ref 'InstanceType'
       KeyName: !Ref 'KeyName'
