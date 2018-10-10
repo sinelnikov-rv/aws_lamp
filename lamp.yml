@@ -101,12 +101,12 @@ Resources:
       UserData: 
         Fn::Base64: !Sub |
            #!/bin/bash -xe
-           echo ${"Ref" : "Artifact"} >> /tmp/1.txt
+           echo '${"Ref" : "Artifact"}' >> /tmp/1.txt
            PUBLIC_IP=`curl http://169.254.169.254/latest/meta-data/public-ipv4`
            apt-get update
            apt-get -y install apache2 php php-mysql libapache2-mod-php
            cd /tmp/
-           wget https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/builds/${"Ref" : "Artifact"}
+#           wget https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/builds/${"Ref" : "Artifact"}
            sudo mkdir -p /var/www/wordpress
            sudo tar xzf wordpress-latest.tar.gz -C /var/www/wordpress
            sudo chown -R www-data:www-data /var/www/
