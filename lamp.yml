@@ -108,7 +108,7 @@ Resources:
            cd /tmp/
            sudo wget https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/${Artifact}
            sudo mkdir -p /var/www/wordpress
-           sudo tar xzf wordpress-latest.tar.gz -C /var/www/wordpress
+           sudo tar xzf ${Artifact} -C /var/www/wordpress
            sudo chown -R www-data:www-data /var/www/
            sudo sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf
            sudo service apache2 restart
