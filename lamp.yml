@@ -102,14 +102,14 @@ Resources:
         Fn::Base64: !Sub |
            #!/bin/bash -xe
            echo '${"Ref" : "Artifact"}' >> /tmp/1.txt
-           PUBLIC_IP=`curl http://169.254.169.254/latest/meta-data/public-ipv4`
-           apt-get update
-           apt-get -y install apache2 php php-mysql libapache2-mod-php
-           cd /tmp/
+#           PUBLIC_IP=`curl http://169.254.169.254/latest/meta-data/public-ipv4`
+#           apt-get update
+#           apt-get -y install apache2 php php-mysql libapache2-mod-php
+#           cd /tmp/
 #           wget https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/builds/
-           sudo mkdir -p /var/www/wordpress
-           sudo tar xzf wordpress-latest.tar.gz -C /var/www/wordpress
-           sudo chown -R www-data:www-data /var/www/
-           sudo sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf
-           sudo service apache2 restart
-           curl --data "dbname=!Ref 'DBName'&uname=!Ref 'DBUser'&pwd=!Ref 'DBPassword'&dbhost=!GetAtt 'MyDB.Endpoint.Address'&prefix=wp_&language=&submit=Submit" http://$PUBLIC_IP/wp-admin/setup-config.php?step=2
+#           sudo mkdir -p /var/www/wordpress
+#           sudo tar xzf wordpress-latest.tar.gz -C /var/www/wordpress
+#           sudo chown -R www-data:www-data /var/www/
+#           sudo sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf
+#           sudo service apache2 restart
+#           curl --data "dbname=!Ref 'DBName'&uname=!Ref 'DBUser'&pwd=!Ref 'DBPassword'&dbhost=!GetAtt 'MyDB.Endpoint.Address'&prefix=wp_&language=&submit=Submit" http://$PUBLIC_IP/wp-admin/setup-config.php?step=2
