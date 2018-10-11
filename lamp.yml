@@ -98,11 +98,11 @@ Resources:
         configSets:
           default:
           - install
-#          - config-cfn-hup
+          - config-cfn-hup
 #          - install-wp
         install:
           files:
-            '/tmp/1.txt':
+            '/var/1.txt':
               content: !Sub |
                 ${Artifact}
 #          packages:
@@ -111,38 +111,38 @@ Resources:
 #              php: []
 #              php-mysql: []
 #              libapache2-mod-php: []
-#        config-cfn-hup:
-#          files:
-#            '/etc/cfn/cfn-hup.conf':
-#              content: !Sub |
-#                [main]
-#                stack=${AWS::StackId}
-#                region=${AWS::Region}
-#                interval=1
-#            '/etc/cfn/hooks.d/cfn-auto-reload.conf':
-#              content: !Sub |
-#                [cfn-auto-reloader-hook]
-#                triggers=post.update
-#                path=Resources.Web.Metadata.AWS::CloudFormation::Init
-#                action=/usr/local/bin/cfn-init -v --stack ${AWS::StackId} --resource Web --region ${AWS::Region}
-#                runas=root
-#            '/etc/systemd/system/cfn-hup.service':
-#              content: |
-#                [Unit]
-#                Description=Cloud formation helper daemon
-#
-#                [Service]
-#                ExecStart=/usr/local/bin/cfn-hup
-#                Restart=always
-#                Type=simple
-#
-#                [Install]
-#                WantedBy=multi-user.target
-#          commands: 
-#            enable-cfn-hup:
-#              command: "systemctl enable cfn-hup.service" 
-#            start-cfn-hup:
-#              command: "systemctl start cfn-hup.service"
+        config-cfn-hup:
+          files:
+            '/etc/cfn/cfn-hup.conf':
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+                interval=1
+            '/etc/cfn/hooks.d/cfn-auto-reload.conf':
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.Web.Metadata.AWS::CloudFormation::Init
+                action=/usr/local/bin/cfn-init -v --stack ${AWS::StackId} --resource Web --region ${AWS::Region}
+                runas=root
+            '/etc/systemd/system/cfn-hup.service':
+              content: |
+                [Unit]
+                Description=Cloud formation helper daemon
+
+                [Service]
+                ExecStart=/usr/local/bin/cfn-hup
+                Restart=always
+                Type=simple
+
+                [Install]
+                WantedBy=multi-user.target
+          commands: 
+            enable-cfn-hup:
+              command: "systemctl enable cfn-hup.service" 
+            start-cfn-hup:
+              command: "systemctl start cfn-hup.service"
 #        install-wp:
 #          sources:
 #                /var/www/wordpress: "https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/artifact"
