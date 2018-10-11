@@ -101,9 +101,10 @@ Resources:
 #          - config-cfn-hup
 #          - install-wp
         install:
-          commands:
-            test:
-              command: "echo ${Artifact} >> /tmp/1.txt"
+          files:
+            '/tmp/1.txt':
+              content: !Sub |
+                ${Artifact}
 #          packages:
 #            apt:
 #              apache2: []
