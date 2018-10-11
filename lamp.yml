@@ -141,7 +141,7 @@ Resources:
               command: "systemctl start cfn-hup.service"
         install-wp:
           sources:
-                /var/www/wordpress: "https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/${Artifact}"
+                /var/www/wordpress: "https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/artifact"
           commands:
             04_change_root_dir:
               command: "sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf"
@@ -158,7 +158,6 @@ Resources:
         Fn::Base64: !Sub 
           - |
            #!/bin/bash -xe
-           TEST=artifact
            PUBLIC_IP=`curl http://169.254.169.254/latest/meta-data/public-ipv4`
            apt-get update
            apt-get install -y python-pip
