@@ -76,23 +76,85 @@ Resources:
     Properties:
       DBSubnetGroupDescription: subnets
       SubnetIds: !Ref Subnets
-#  MyDB:
-#    Type: AWS::RDS::DBInstance
-#    DeletionPolicy: Delete
-#    Properties:
-#      DBName: !Ref 'DBName'
-#      AllocatedStorage: '20'
-#      DBInstanceClass: db.t2.micro
-#      Engine: MySQL
-#      EngineVersion: 5.7.22
-#      MasterUsername: !Ref 'DBUser'
-#      MasterUserPassword: !Ref 'DBPassword'
-#      DBSubnetGroupName: !Ref 'DBSubnetGroup'
-#      VPCSecurityGroups: [!GetAtt [DBEC2SecurityGroup, GroupId]]
-#      BackupRetentionPeriod: '0'
+  MyDB:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    Properties:
+      DBName: !Ref 'DBName'
+      AllocatedStorage: '20'
+      DBInstanceClass: db.t2.micro
+      Engine: MySQL
+      EngineVersion: 5.7.22
+      MasterUsername: !Ref 'DBUser'
+      MasterUserPassword: !Ref 'DBPassword'
+      DBSubnetGroupName: !Ref 'DBSubnetGroup'
+      VPCSecurityGroups: [!GetAtt [DBEC2SecurityGroup, GroupId]]
+      BackupRetentionPeriod: '0'
   Web:
     Type: AWS::EC2::Instance
-#    DependsOn: 'MyDB'
+    DependsOn: 'MyDB'
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          default:
+          - install-wp
+          - config-cfn-hup
+          - install
+        install:
+          packages:
+            apt:
+              apache2: []
+              php: []
+              php-mysql: []
+              libapache2-mod-php: []
+        config-cfn-hup:
+          files:
+            '/etc/cfn/cfn-hup.conf':
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+                interval=1
+            '/etc/cfn/hooks.d/cfn-auto-reload.conf':
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.Web.Metadata.AWS::CloudFormation::Init
+                action=/usr/local/bin/cfn-init -v --stack ${AWS::StackId} --resource Web --region ${AWS::Region}
+                runas=root
+            '/etc/systemd/system/cfn-hup.service':
+              content: |
+                [Unit]
+                Description=Cloud formation helper daemon
+
+                [Service]
+                ExecStart=/usr/local/bin/cfn-hup
+                Restart=always
+                Type=simple
+
+                [Install]
+                WantedBy=multi-user.target
+          commands: 
+            enable-cfn-hup:
+              command: "systemctl enable cfn-hup.service" 
+            start-cfn-hup:
+              command: "systemctl start cfn-hup.service"
+        install-wp:
+          commands:
+            01_download_wp:
+              cwd: /tmp/
+              command: !Sub "wget https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/${Artifact}"
+            02_create_wp_dir:
+              command: "mkdir -p /var/www/wordpress"
+            03_untar_wp:
+              cwd: /tmp/
+              command: !Sub "tar xzf ${Artifact} -C /var/www/wordpress"
+            04_change_root_dir:
+              command: "sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf"
+            05_chown:
+              command: "chown -R www-data:www-data /var/www/"
+            06_restart_apache:
+              command: "service apache2 restart"
     Properties:
       InstanceType: !Ref 'InstanceType'
       KeyName: !Ref 'KeyName'
@@ -104,13 +166,18 @@ Resources:
            #!/bin/bash -xe
            PUBLIC_IP=`curl http://169.254.169.254/latest/meta-data/public-ipv4`
            apt-get update
-           apt-get -y install apache2 php php-mysql libapache2-mod-php
-           cd /tmp/
-           sudo wget https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/${Artifact}
-           sudo mkdir -p /var/www/wordpress
-           sudo tar xzf ${Artifact} -C /var/www/wordpress
-           sudo chown -R www-data:www-data /var/www/
-           sudo sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf
-           sudo service apache2 restart
+           apt-get install -y python-pip
+           export LC_ALL=C
+           pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+           /usr/local/bin/cfn-init -v --stack ${AWS::StackId} --resource Web --region ${AWS::Region}
+           /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource Web --region ${AWS::Region}
+           #apt-get -y install apache2 php php-mysql libapache2-mod-php
+           #cd /tmp/
+           #sudo wget https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/${Artifact}
+           #sudo mkdir -p /var/www/wordpress
+           #sudo tar xzf ${Artifact} -C /var/www/wordpress
+           #sudo chown -R www-data:www-data /var/www/
+           #sudo sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf
+           #sudo service apache2 restart
 #           curl --data "dbname=!Ref 'DBName'&uname=!Ref 'DBUser'&pwd=!Ref 'DBPassword'&dbhost=!GetAtt 'MyDB.Endpoint.Address'&prefix=wp_&language=&submit=Submit" http://$PUBLIC_IP/wp-admin/setup-config.php?step=2
           - { Artifact: !Ref 'Artifact' }
