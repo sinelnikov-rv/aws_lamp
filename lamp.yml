@@ -164,6 +164,7 @@ Resources:
         Fn::Base64: !Sub 
           - |
            #!/bin/bash -xe
+           ARTIFACT=${artifact}
            PUBLIC_IP=`curl http://169.254.169.254/latest/meta-data/public-ipv4`
            apt-get update
            apt-get install -y python-pip
