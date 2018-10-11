@@ -140,12 +140,9 @@ Resources:
             start-cfn-hup:
               command: "systemctl start cfn-hup.service"
         install-wp:
-          commands:
-	    01_create_wp_dir:
-	      command: "mkdir -p /var/www/wordpress"
-            02_download_wp:
-              sources:
+          sources:
                 /var/www/wordpress: "https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/${Artifact}"
+          commands:
             04_change_root_dir:
               command: "sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf"
             05_chown:
@@ -161,7 +158,6 @@ Resources:
         Fn::Base64: !Sub 
           - |
            #!/bin/bash -xe
-           ARTIFACT=${artifact}
            PUBLIC_IP=`curl http://169.254.169.254/latest/meta-data/public-ipv4`
            apt-get update
            apt-get install -y python-pip
@@ -172,7 +168,7 @@ Resources:
            #apt-get -y install apache2 php php-mysql libapache2-mod-php
            #cd /tmp/
            #sudo wget https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/${Artifact}
-           #sudo mkdir -p /var/www/wordpress
+           mkdir -p /var/www/wordpress
            #sudo tar xzf ${Artifact} -C /var/www/wordpress
            #sudo chown -R www-data:www-data /var/www/
            #sudo sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf
