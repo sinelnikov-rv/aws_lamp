@@ -127,7 +127,7 @@ Resources:
                 [cfn-auto-reloader-hook]
                 triggers=post.update
                 path=Resources.Web.Metadata.AWS::CloudFormation::Init
-                action=/usr/local/bin/cfn-init -v --stack ${AWS::StackId} --resource Web --region ${AWS::Region}
+                action=/usr/local/bin/cfn-init -v --stack ${AWS::StackName} --resource Web --region ${AWS::Region}
                 runas=root
             '/etc/systemd/system/cfn-hup.service':
               content: |
@@ -170,8 +170,8 @@ Resources:
            apt-get install -y python-pip
            export LC_ALL=C
            pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
-           /usr/local/bin/cfn-init -v --stack ${AWS::StackId} --resource Web --region ${AWS::Region}
-           /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource Web --region ${AWS::Region}
+           /usr/local/bin/cfn-init -v --stack ${AWS::StackName} --resource Web --region ${AWS::Region}
+           /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource Web --region ${AWS::Region}
            #apt-get -y install apache2 php php-mysql libapache2-mod-php
            #cd /tmp/
            #sudo wget https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/${Artifact}
