@@ -105,6 +105,9 @@ Resources:
             '/var/1.txt':
               content: !Sub |
                 ${Artifact}
+            '/var/2.txt':
+              content: |
+                artifact
 #          packages:
 #            apt:
 #              apache2: []
