@@ -99,21 +99,14 @@ Resources:
           default:
           - install
           - config-cfn-hup
-#          - install-wp
+          - install-wp
         install:
-          files:
-            '/var/1.txt':
-              content: !Sub |
-                ${Artifact}
-            '/var/2.txt':
-              content: |
-                artifact
-#          packages:
-#            apt:
-#              apache2: []
-#              php: []
-#              php-mysql: []
-#              libapache2-mod-php: []
+          packages:
+            apt:
+              apache2: []
+              php: []
+              php-mysql: []
+              libapache2-mod-php: []
         config-cfn-hup:
           files:
             '/etc/cfn/cfn-hup.conf':
@@ -146,16 +139,16 @@ Resources:
               command: "systemctl enable cfn-hup.service" 
             start-cfn-hup:
               command: "systemctl start cfn-hup.service"
-#        install-wp:
-#          sources:
-#                /var/www/wordpress: "https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/artifact"
-#          commands:
-#            04_change_root_dir:
-#              command: "sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf"
-#            05_chown:
-#              command: "chown -R www-data:www-data /var/www/"
-#            06_restart_apache:
-#              command: "service apache2 restart"
+        install-wp:
+          sources:
+                /var/www/wordpress: "https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/artifact"
+          commands:
+            04_change_root_dir:
+              command: "sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf"
+            05_chown:
+              command: "chown -R www-data:www-data /var/www/"
+            06_restart_apache:
+              command: "service apache2 restart"
     Properties:
       InstanceType: !Ref 'InstanceType'
       KeyName: !Ref 'KeyName'
@@ -166,6 +159,7 @@ Resources:
           - |
            #!/bin/bash -xe
            PUBLIC_IP=`curl http://169.254.169.254/latest/meta-data/public-ipv4`
+           mkdir -p /var/www/wordpress
            apt-get update
            apt-get install -y python-pip
            export LC_ALL=C
@@ -175,10 +169,9 @@ Resources:
            #apt-get -y install apache2 php php-mysql libapache2-mod-php
            #cd /tmp/
            #sudo wget https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/${Artifact}
-           mkdir -p /var/www/wordpress
            #sudo tar xzf ${Artifact} -C /var/www/wordpress
            #sudo chown -R www-data:www-data /var/www/
            #sudo sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf
            #sudo service apache2 restart
 #           curl --data "dbname=!Ref 'DBName'&uname=!Ref 'DBUser'&pwd=!Ref 'DBPassword'&dbhost=!GetAtt 'MyDB.Endpoint.Address'&prefix=wp_&language=&submit=Submit" http://$PUBLIC_IP/wp-admin/setup-config.php?step=2
-          - { Artifact: !Ref 'Artifact' }
+#          - { Artifact: !Ref 'Artifact' }
