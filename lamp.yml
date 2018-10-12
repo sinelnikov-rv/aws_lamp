@@ -97,13 +97,10 @@ Resources:
       AWS::CloudFormation::Init:
         configSets:
           default:
-          - config-cfn-hup
           - install
-#          - config-cfn-hup
+          - config-cfn-hup
 #          - install-wp
         install:
-          sources:
-            /var/www/wordpress: "https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/artifact"
           files:
             '/var/1.txt':
               content: !Sub |
