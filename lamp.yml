@@ -97,8 +97,9 @@ Resources:
       AWS::CloudFormation::Init:
         configSets:
           default:
-          - install
           - config-cfn-hup
+          - install
+#          - config-cfn-hup
 #          - install-wp
         install:
           sources:
