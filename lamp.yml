@@ -141,7 +141,7 @@ Resources:
               command: "systemctl start cfn-hup.service"
         install-wp:
           sources:
-                /var/www/wordpress: "https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/${Artifact}"
+                /var/www/wordpress: !Sub "https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/${Artifact}"
           commands:
             04_change_root_dir:
               command: "sed -i 's/html/wordpress/' /etc/apache2/sites-enabled/000-default.conf"
@@ -151,7 +151,7 @@ Resources:
               command: "service apache2 restart"
             07_download_wp:
               cwd: /var/
-              command: "wget https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/${Artifact}"
+              command: !Sub "wget https://s3-eu-west-1.amazonaws.com/cf-templates-1y0rf36bmollt-eu-west-1/${Artifact}"
     Properties:
       InstanceType: !Ref 'InstanceType'
       KeyName: !Ref 'KeyName'
